@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<style>
+  .links line {
+    stroke: #999;
+    stroke-opacity: 0.6;
+  }
+
+  .nodes circle {
+    stroke: #fff;
+    stroke-width: 1.5px;
+  }
+  div.tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 0.5rem;
+    background: #e4dcdc;
+    color: #313639;
+    /* border: 1px solid #313639;
+     border-radius: 8px; */
+    width: 120px;
+    height: 120px;
+    pointer-events: none;
+    font-size: 1.3rem;
+    background: transparent;
+  }
+
+  .zoom {
+  padding: 50px;
+  background-color: green;
+  transition: transform .2s;
+
+  margin: 0 auto;
+}
+
+.zoom:hover {
+  
+  transform: scale(1); 
+
+  width: 100px;
+      height: 100px;
+}
+
+</style>
+
+<h1>Visualisation of Fraud dataset on 2000 samples</h1>
+
+<svg width="1960" height="1600"></svg>
+<div id="tooltip"></div>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+  var div_tool = d3
+    .select("#tooltip")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+  var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+  var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+  var simulation = d3
+    .forceSimulation()
+    .force(
+      "link",
+      d3.forceLink().id(function (d) {
+        return d.id;
+      })
+    )
+    .force("charge", d3.forceManyBody())
+    .force("center", d3.forceCenter(width / 2, height / 2));
+
+  
+  
+    d3.json("2000.json", function (error, graph) {
+    if (error) throw error;
+
+    var link = svg
+      .append("g")
+      .attr("class", "links")
+      .selectAll("line")
+      .data(graph.links)
+      .enter()
+      .append("line")
+      .attr("stroke-width", function (d) {
+        return Math.sqrt(1);
+      })  
+      .on("mouseover", function (d) {
+        console.log(d);
+        div_tool
+          .html(d.source.id + " frauded " +"amount of "+d.amount +"$<br>"+ d.target.id + "<br>" + d.gender +"<br>"  )
+          .style("left",  15 + "px")
+          .style("top", 450 + "px")
+          //.style("left", d3.event.pageX + 15 + "px")
+          //.style("top", d3.event.pageY - 50 + "px")
+          .style("background", "transparent")
+          .style("display", "inline")
+          .style("opacity", 1)
+          .style("color", function (d) {
+            return "green"
+          })
+
+          .style("font-size", 30 + "px");
+      })
+
+      .on("mousemove", function (d, i) {
+        document
+          .getElementById("tooltip")
+          .div_tool.html("")
+          .style("display", "none");
+      })
+      .on("mouseout", function (d, i) {
+        div_tool.html("").style("display", "none");
+      })
+
+
+
+
+
+
+      ////
+
+    var node = svg
+      .append("g")
+      .attr("class", "nodes")
+
+      .selectAll("circle")
+      .data(graph.nodes)
+      .enter()
+      .append("circle")
+      .attr("r", 5)
+
+      .attr("fill", function (d) {
+        if (d.group == 1) return "red";
+        else return "blue";
+      }).on("mouseover", function (d) {
+        console.log(d);
+        div_tool
+          .html("id=" +d.id  +"<br>" )
+          .style("left",  15 + "px")
+          .style("top", 450 + "px")
+          //.style("left", d3.event.pageX + 15 + "px")
+          //.style("top", d3.event.pageY - 50 + "px")
+          .style("background", "transparent")
+          .style("display", "inline")
+          .style("opacity", 1)
+          .style("color", function (d) {
+            return "green"
+          })
+
+          .style("font-size", 30 + "px");
+      })
+
+      .on("mousemove", function (d, i) {
+        document
+          .getElementById("tooltip")
+          .div_tool.html("")
+          .style("display", "none");
+      })
+      .on("mouseout", function (d, i) {
+        div_tool.html("").style("display", "none");
+      })
+
+      
+
+      
+      .call(
+        d3
+          .drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended)
+      ) 
+
+    
+    
+
+     
+
+
+
+    node.append("title").text(function (d) {
+      return d.id;
+    });
+
+
+
+   
+    
+
+
+
+    simulation.nodes(graph.nodes).on("tick", ticked);
+
+    simulation.force("link").links(graph.links);
+
+    function ticked() {
+      link
+        .attr("x1", function (d) {
+          return d.source.x;
+        })
+        .attr("y1", function (d) {
+          return d.source.y;
+        })
+        .attr("x2", function (d) {
+          return d.target.x;
+        })
+        .attr("y2", function (d) {
+          return d.target.y;
+        });
+
+      node
+        .attr("cx", function (d) {
+          return d.x;
+        })
+        .attr("cy", function (d) {
+          return d.y;
+        });
+    }
+  });
+
+  function dragstarted(d) {
+    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+
+  function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+  }
+
+  function dragended(d) {
+    if (!d3.event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
+</script>
