@@ -1,7 +1,7 @@
 # -- coding: utf-8 --
 import pandas as pd
 
-data = pd.read_csv("data.csv")
+data = pd.read_csv("Data/bs140513_032310.csv")
 
 fraud1 = data[data['fraud']==1]
 
